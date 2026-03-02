@@ -174,7 +174,7 @@ router.get('/eligibility', protect, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get all projects for a user
+// Get all projects for a user (without heavy content)
 router.get('/:userId', protect, async (req: AuthenticatedRequest, res) => {
   console.log(`Fetching projects for user: ${req.params.userId}`);
   if (!supabase) return res.status(503).json({ error: 'Database service is unavailable' });
@@ -186,7 +186,8 @@ router.get('/:userId', protect, async (req: AuthenticatedRequest, res) => {
   try {
     const { data: projects, error } = await supabase
       .from('projects')
-      .select('*')
+      // Exclude 'content' to prevent 502 timeouts on large payloads
+      .select('id, user_id, topic, details, is_premium_generated, created_at')
       .eq('user_id', req.params.userId)
       .order('created_at', { ascending: false });
 
@@ -200,6 +201,31 @@ router.get('/:userId', protect, async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error('Failed to fetch projects:', error);
     res.status(500).json({ error: 'Failed to fetch projects' });
+  }
+});
+
+// Get single project with full content
+router.get('/single/:id', protect, async (req: AuthenticatedRequest, res) => {
+  if (!supabase) return res.status(503).json({ error: 'Database service is unavailable' });
+  try {
+    const { data: project, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (String(project.user_id) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    res.json(project);
+  } catch (error) {
+    console.error('Failed to fetch project:', error);
+    res.status(500).json({ error: 'Failed to fetch project' });
   }
 });
 

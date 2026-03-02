@@ -16,8 +16,29 @@ interface DashboardProps {
   onNavigate: (step: any) => void;
 }
 
-export default function Dashboard({ onBack, onViewProject, onNavigate }: DashboardProps) {
+export default function Dashboard({ onBack, onViewProject: propsOnViewProject, onNavigate }: DashboardProps) {
   const { user, setUser, logout } = useContext(UserContext);
+  
+  const onViewProject = async (project: any, user: any) => {
+    // Fetch full project content if missing
+    let fullProject = project;
+    if (!project.content) {
+      try {
+        const res = await clientFetch(`/api/projects/single/${project.id}`);
+        if (res.ok) {
+          fullProject = await res.json();
+        } else {
+          alert('Failed to load project content');
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Failed to load project content');
+        return;
+      }
+    }
+    propsOnViewProject(fullProject, user);
+  };
   const [transactions, setTransactions] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,28 +121,82 @@ export default function Dashboard({ onBack, onViewProject, onNavigate }: Dashboa
       .catch(err => console.error('Error fetching PPT payment amount:', err));
   };
 
-  const handleViewPdf = (project: any) => {
-    setSelectedProject(project);
-    const doc = generateProjectPDF(project.details || {}, project.content || {}, false);
+  const handleViewPdf = async (project: any) => {
+    // Fetch full project content if missing
+    let fullProject = project;
+    if (!project.content) {
+      try {
+        const res = await clientFetch(`/api/projects/single/${project.id}`);
+        if (res.ok) {
+          fullProject = await res.json();
+        } else {
+          alert('Failed to load project content');
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Failed to load project content');
+        return;
+      }
+    }
+
+    setSelectedProject(fullProject);
+    const doc = generateProjectPDF(fullProject.details || {}, fullProject.content || {}, false);
     const pdfOutput = doc.output('datauristring');
     setPdfDataUrl(pdfOutput);
     setShowPdfViewer(true);
   };
 
-  const handleDownloadPdf = (project: any) => {
+  const handleDownloadPdf = async (project: any) => {
+    // Fetch full project content if missing
+    let fullProject = project;
+    if (!project.content) {
+      try {
+        const res = await clientFetch(`/api/projects/single/${project.id}`);
+        if (res.ok) {
+          fullProject = await res.json();
+        } else {
+          alert('Failed to load project content');
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Failed to load project content');
+        return;
+      }
+    }
+
     // Premium logic: User has credits OR balance >= 10000 OR has free access flag
     const isPremium = (user?.project_credits || 0) > 0 || (user?.balance || 0) >= 10000 || user?.hasFreeAccess;
     
     if (isPremium) {
-      generateProjectPDF(project.details || {}, project.content || {}, true);
+      generateProjectPDF(fullProject.details || {}, fullProject.content || {}, true);
     } else {
       setPremiumFeatureName('PDF Download');
       setShowPremiumModal(true);
     }
   };
 
-  const initiatePptGeneration = (project: any) => {
-    setSelectedProject(project);
+  const initiatePptGeneration = async (project: any) => {
+    // Fetch full project content if missing
+    let fullProject = project;
+    if (!project.content) {
+      try {
+        const res = await clientFetch(`/api/projects/single/${project.id}`);
+        if (res.ok) {
+          fullProject = await res.json();
+        } else {
+          alert('Failed to load project content');
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Failed to load project content');
+        return;
+      }
+    }
+
+    setSelectedProject(fullProject);
     setShowPptModal(true);
   };
 
