@@ -77,16 +77,33 @@ export async function* generateContentStreamWithRetries(params: any): AsyncGener
       console.log(`[Gemini] Calling generateContentStream with model: ${params.model || 'default'}`);
       
       // Ensure contents is in the correct format for the SDK
+      let formattedContents: any[] = [];
+      if (typeof params.contents === 'string') {
+        formattedContents = [{ role: 'user', parts: [{ text: params.contents }] }];
+      } else if (Array.isArray(params.contents)) {
+        formattedContents = params.contents.map((c: any) => {
+          if (c.parts && !c.role) return { role: 'user', parts: c.parts };
+          if (c.parts && c.role) return c;
+          // If it's just an object with parts but no role, it might be the { parts: [...] } format
+          if (c.parts) return { role: 'user', parts: c.parts };
+          return { role: 'user', parts: [{ text: String(c) }] };
+        });
+      } else if (params.contents && params.contents.parts) {
+        formattedContents = [{ role: 'user', parts: params.contents.parts }];
+      } else {
+        console.error("[Gemini] Invalid contents format:", params.contents);
+        throw new Error("Invalid Gemini contents format");
+      }
+
       const formattedParams = {
         model: params.model || 'gemini-3-flash-preview',
-        contents: typeof params.contents === 'string' ? { parts: [{ text: params.contents }] } : params.contents,
+        contents: formattedContents,
         config: params.config
       };
 
-      console.log("[Gemini] Formatted Params:", JSON.stringify({
+      console.log("[Gemini] Formatted Params for SDK:", JSON.stringify({
         model: formattedParams.model,
-        contentsType: typeof formattedParams.contents,
-        isContentsArray: Array.isArray(formattedParams.contents),
+        contentsCount: formattedParams.contents.length,
         config: formattedParams.config
       }));
 

@@ -47,6 +47,43 @@ router.get('/keys', (req, res) => {
   res.json({ keys: uniqueKeys });
 });
 
+// Test Gemini Connection
+router.get('/test', protect, async (req: AuthenticatedRequest, res) => {
+  console.log('[Gemini Test] Starting connection test...');
+  if (!hasKeys()) {
+    return res.status(500).json({ 
+      error: "No Gemini API keys configured on server.", 
+      details: "Please set GEMINI_API_KEY in Netlify environment variables." 
+    });
+  }
+
+  try {
+    const response = await generateContentWithRetries({
+      model: 'gemini-3-flash-preview',
+      contents: 'Hello, are you there? Respond with "YES" if you are working.',
+      config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        temperature: 0.1,
+      }
+    });
+
+    console.log('[Gemini Test] Success:', response.text);
+    res.json({ 
+      status: 'success', 
+      message: 'Gemini API is working from backend.',
+      response: response.text 
+    });
+  } catch (error: any) {
+    console.error("[Gemini Test] Failed:", error);
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Gemini API failed from backend.',
+      error: error.message,
+      details: error.toString()
+    });
+  }
+});
+
 // EDU 432 Questions
 router.post('/edu432', protect, async (req: AuthenticatedRequest, res) => {
   const { text, base64Data, mimeType, mode } = req.body;

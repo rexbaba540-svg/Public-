@@ -127,9 +127,28 @@ export async function* generateContentStreamWithRetries(params: any): AsyncGener
     for (const client of availableClients) {
       try {
         const model = params.model || 'gemini-3-flash-preview';
+        
+        // Ensure contents is in the correct format for the SDK
+        let formattedContents: any[] = [];
+        if (typeof params.contents === 'string') {
+          formattedContents = [{ role: 'user', parts: [{ text: params.contents }] }];
+        } else if (Array.isArray(params.contents)) {
+          formattedContents = params.contents.map((c: any) => {
+            if (c.parts && !c.role) return { role: 'user', parts: c.parts };
+            if (c.parts && c.role) return c;
+            if (c.parts) return { role: 'user', parts: c.parts };
+            return { role: 'user', parts: [{ text: String(c) }] };
+          });
+        } else if (params.contents && params.contents.parts) {
+          formattedContents = [{ role: 'user', parts: params.contents.parts }];
+        } else {
+          console.error("[Gemini] Invalid contents format:", params.contents);
+          throw new Error("Invalid Gemini contents format");
+        }
+
         const stream = await client.client.models.generateContentStream({
           model: model,
-          contents: params.contents,
+          contents: formattedContents,
           config: params.config
         });
         
@@ -175,16 +194,26 @@ export async function* generateContentStreamWithRetries(params: any): AsyncGener
         })
       });
 
+      console.log(`[Gemini] Backend response status: ${response.status} ${response.statusText}`);
+
       if (!response.ok) {
         let errorData: any = { error: 'Unknown error' };
+        let responseText = '';
         try {
-          errorData = await response.json();
+          responseText = await response.text();
+          errorData = JSON.parse(responseText);
         } catch (e) {
-          const text = await response.text();
-          console.error(`[Gemini] Backend returned non-JSON response: ${text.substring(0, 200)}`);
-          errorData = { error: `Server returned ${response.status}: ${response.statusText}`, details: text.substring(0, 100) };
+          console.error(`[Gemini] Backend returned non-JSON response: ${responseText.substring(0, 500)}`);
+          errorData = { 
+            error: `Server returned ${response.status}: ${response.statusText}`, 
+            details: responseText.substring(0, 200),
+            fullResponse: responseText.substring(0, 1000)
+          };
         }
-        throw new Error(errorData.error || 'Failed to generate content via backend');
+        
+        const finalErrorMessage = errorData.error || errorData.message || `Backend error ${response.status}`;
+        console.error(`[Gemini] Throwing error: ${finalErrorMessage}`, errorData);
+        throw new Error(finalErrorMessage);
       }
 
       const data = await response.json();

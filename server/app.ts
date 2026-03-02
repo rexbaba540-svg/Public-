@@ -168,26 +168,36 @@ app.get('/api/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/support', supportRouter); 
-app.use('/api/auth', (req, res, next) => {
-  console.log(`Auth Route Hit: ${req.method} ${req.url}`);
-  next();
-}, authRouter);
-app.use('/api/projects', protect, projectsRouter);
-app.use('/api/admin/topup', protect, admin, adminTopupRouter);
-app.use('/api/admin/pricing', protect, admin, adminPricingRouter);
-app.use('/api/admin/backup', protect, admin, adminBackupRouter);
-app.use('/api/topup', protect, topupRouter);
-app.use('/api/admin', protect, admin, adminUsersRouter);
-app.use('/api/notifications', protect, notificationsRouter);
-app.use('/api/wallet', protect, walletRouter);
-app.use('/api/transactions', protect, transactionsRouter);
-app.use('/api/gemini', (req, res, next) => {
-  console.log(`Gemini Route Hit: ${req.method} ${req.url}`);
-  next();
-}, geminiRouter); // Protect is handled inside the router
-app.use('/api/ai', protect, aiRouter);
-app.use('/api/users', protect, usersRouter);
+const mountRoutes = (router: any) => {
+  router.use('/support', supportRouter); 
+  router.use('/auth', (req: any, res: any, next: any) => {
+    console.log(`Auth Route Hit: ${req.method} ${req.url}`);
+    next();
+  }, authRouter);
+  router.use('/projects', protect, projectsRouter);
+  router.use('/admin/topup', protect, admin, adminTopupRouter);
+  router.use('/admin/pricing', protect, admin, adminPricingRouter);
+  router.use('/admin/backup', protect, admin, adminBackupRouter);
+  router.use('/topup', protect, topupRouter);
+  router.use('/admin', protect, admin, adminUsersRouter);
+  router.use('/notifications', protect, notificationsRouter);
+  router.use('/wallet', protect, walletRouter);
+  router.use('/transactions', protect, transactionsRouter);
+  router.use('/gemini', (req: any, res: any, next: any) => {
+    console.log(`Gemini Route Hit: ${req.method} ${req.url}`);
+    next();
+  }, geminiRouter); // Protect is handled inside the router
+  router.use('/ai', protect, aiRouter);
+  router.use('/users', protect, usersRouter);
+};
+
+// Mount at /api for local dev and standard redirects
+const apiRouter = express.Router();
+mountRoutes(apiRouter);
+app.use('/api', apiRouter);
+
+// Also mount at / for Netlify redirects that strip /api
+mountRoutes(app);
 
 app.get('/api/db-check', async (req, res) => {
   if (!supabase) {
