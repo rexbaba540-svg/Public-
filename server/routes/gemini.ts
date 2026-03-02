@@ -5,6 +5,35 @@ import { ThinkingLevel } from '@google/genai';
 
 const router = express.Router();
 
+// Get Gemini Keys for Client-Side Use (Avoids Netlify Timeouts)
+router.get('/keys', protect, (req: AuthenticatedRequest, res) => {
+  const keys: string[] = [];
+  
+  // Collect keys from server environment
+  if (process.env.GEMINI_API_KEY) keys.push(process.env.GEMINI_API_KEY);
+  if (process.env.GEMINI_API_KEYS) {
+    process.env.GEMINI_API_KEYS.split(',').forEach(k => {
+      if (k.trim()) keys.push(k.trim());
+    });
+  }
+  for (let i = 1; i <= 20; i++) {
+    const key = process.env[`GEMINI_API_KEY_${i}`];
+    if (key) keys.push(key);
+  }
+
+  // Also check VITE_ prefixed ones just in case
+  if (process.env.VITE_GEMINI_API_KEY) keys.push(process.env.VITE_GEMINI_API_KEY);
+
+  // Deduplicate
+  const uniqueKeys = [...new Set(keys)];
+
+  if (uniqueKeys.length === 0) {
+    return res.status(500).json({ error: 'No Gemini API keys configured on server' });
+  }
+
+  res.json({ keys: uniqueKeys });
+});
+
 // EDU 432 Questions
 router.post('/edu432', protect, async (req: AuthenticatedRequest, res) => {
   const { text, base64Data, mimeType, mode } = req.body;

@@ -9,66 +9,98 @@ interface GeminiClient {
 }
 
 const geminiClients: GeminiClient[] = [];
+let isInitializing = false;
+let initializationPromise: Promise<void> | null = null;
 
 // Initialize Gemini clients
-const initializeClients = () => {
-  geminiClients.length = 0; // Clear existing
-  const keys = new Set<string>();
+const initializeClients = async () => {
+  // If we are already initializing, return the existing promise
+  if (isInitializing) return initializationPromise;
+  
+  // If we already have clients, we don't need to initialize again unless forced (not implemented here)
+  if (geminiClients.length > 0) return Promise.resolve();
 
-  // Client-side initialization using baked-in keys
-  if (typeof window !== 'undefined') {
-    // @ts-ignore
-    const allKeys = import.meta.env.VITE_ALL_GEMINI_KEYS as string[];
-    if (Array.isArray(allKeys)) {
-      allKeys.forEach(k => keys.add(k));
+  isInitializing = true;
+
+  initializationPromise = (async () => {
+    geminiClients.length = 0; // Clear existing
+    const keys = new Set<string>();
+
+    // 1. Try Client-Side Baked-in Keys
+    if (typeof window !== 'undefined') {
+      // @ts-ignore
+      const allKeys = import.meta.env.VITE_ALL_GEMINI_KEYS as string[];
+      if (Array.isArray(allKeys)) {
+        allKeys.forEach(k => keys.add(k));
+      }
+      const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (singleKey) keys.add(singleKey);
+    } 
+    
+    // 2. Try Server-Side Keys (Node.js environment)
+    if (typeof process !== 'undefined' && process.env) {
+      const multiKeys = process.env.GEMINI_API_KEYS || process.env.VITE_GEMINI_API_KEYS;
+      if (multiKeys) {
+        multiKeys.split(',').forEach(key => {
+          if (key.trim()) keys.add(key.trim());
+        });
+      }
+      const singleKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+      if (singleKey) keys.add(singleKey);
+      for (let i = 1; i <= 20; i++) {
+        const apiKey = process.env[`GEMINI_API_KEY_${i}`] || process.env[`VITE_GEMINI_API_KEY_${i}`];
+        if (apiKey) keys.add(apiKey);
+      }
     }
-    // Fallback to single key if array is empty/missing
-    const singleKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (singleKey) keys.add(singleKey);
-  } 
-  // Server-side initialization (Node.js)
-  else if (typeof process !== 'undefined' && process.env) {
-    // Check for comma-separated keys
-    const multiKeys = process.env.GEMINI_API_KEYS || process.env.VITE_GEMINI_API_KEYS;
-    if (multiKeys) {
-      multiKeys.split(',').forEach(key => {
-        const trimmedKey = key.trim();
-        if (trimmedKey) keys.add(trimmedKey);
+
+    // 3. If no keys found yet (Client-side runtime), fetch from backend
+    if (keys.size === 0 && typeof window !== 'undefined') {
+      try {
+        console.log("Fetching Gemini keys from backend...");
+        const response = await clientFetch('/api/gemini/keys');
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data.keys)) {
+            data.keys.forEach((k: string) => keys.add(k));
+            console.log(`Fetched ${data.keys.length} keys from backend.`);
+          }
+        } else {
+          console.warn("Failed to fetch keys from backend:", response.statusText);
+        }
+      } catch (error) {
+        console.warn("Error fetching keys from backend:", error);
+      }
+    }
+
+    keys.forEach(apiKey => {
+      geminiClients.push({
+        apiKey,
+        client: new GoogleGenAI({ apiKey }),
+        isRateLimited: false,
+        rateLimitResetTime: 0
       });
-    }
-
-    // Check for single key
-    const singleKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
-    if (singleKey) keys.add(singleKey);
-
-    // Check for numbered keys
-    for (let i = 1; i <= 20; i++) {
-      const apiKey = process.env[`GEMINI_API_KEY_${i}`] || process.env[`VITE_GEMINI_API_KEY_${i}`];
-      if (apiKey) keys.add(apiKey);
-    }
-  }
-
-  keys.forEach(apiKey => {
-    geminiClients.push({
-      apiKey,
-      client: new GoogleGenAI({ apiKey }),
-      isRateLimited: false,
-      rateLimitResetTime: 0
     });
-  });
 
-  if (geminiClients.length === 0) {
-    console.warn("No Gemini API keys found. Client-side generation may fail.");
-  } else {
-    console.log(`Initialized ${geminiClients.length} Gemini API clients (${typeof window !== 'undefined' ? 'Client' : 'Server'}).`);
-  }
+    if (geminiClients.length === 0) {
+      console.warn("No Gemini API keys found. Client-side generation may fail.");
+    } else {
+      console.log(`Initialized ${geminiClients.length} Gemini API clients.`);
+    }
+    
+    isInitializing = false;
+  })();
+
+  return initializationPromise;
 };
 
-// Initialize on load
+// Initialize on load (fire and forget)
 initializeClients();
 
 export async function* generateContentStreamWithRetries(params: any): AsyncGenerator<any> {
-  if (geminiClients.length === 0) initializeClients();
+  // Always ensure clients are initialized. If empty, try again (maybe user logged in now)
+  if (geminiClients.length === 0) {
+    await initializeClients();
+  }
 
   // 1. Try Client-Side Rotation First
   if (geminiClients.length > 0) {
