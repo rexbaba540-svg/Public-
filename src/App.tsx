@@ -1,65 +1,75 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, lazy, Suspense } from 'react';
 import { Department, GenerationStep, ProjectContent, ProjectDetails } from './types';
 import { INITIAL_PROJECT_CONTENT } from './constants';
-import Landing from './components/Landing';
-import TopicGenerator from './components/TopicGenerator';
-import ProjectForm from './components/ProjectForm';
-import ProjectWriter from './components/ProjectWriter';
-import ProjectReview from './components/ProjectReview';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import Dashboard from './components/Dashboard';
-import AdminDashboard from './components/AdminDashboard';
-import Navigation from './components/Navigation';
-import Support from './components/Support';
-import ProjectEditor from './components/ProjectEditor';
-import ProjectDefense from './components/ProjectDefense';
-import Header from './components/Header';
-import TopUp from './components/TopUp';
-import NotificationsPage from './components/NotificationsPage';
-import TransactionsPage from './components/TransactionsPage';
-import PremiumModal from './components/PremiumModal';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { clientFetch } from './utils/api';
 
-import Services from './components/Services';
-import CGPACalculator from './components/CGPACalculator';
-import AssignmentWriter from './components/AssignmentWriter';
-import QuizWriter from './components/QuizWriter';
-import PastQuestionGenerator from './components/PastQuestionGenerator';
-import Paraphraser from './components/Paraphraser';
-import CVBuilder from './components/CVBuilder';
-import StudyTimetable from './components/StudyTimetable';
-import ScholarshipFinder from './components/ScholarshipFinder';
-import CarryoverCalculator from './components/CarryoverCalculator';
-import SideHustleGenerator from './components/SideHustleGenerator';
-import NoteSummarizer from './components/NoteSummarizer';
-import JobFinder from './components/JobFinder';
-import FoodBudgetPlanner from './components/FoodBudgetPlanner';
-import ExamPredictor from './components/ExamPredictor';
-import MemoryHackGenerator from './components/MemoryHackGenerator';
-import PerfectExamAnswer from './components/PerfectExamAnswer';
-import TextbookToQuestions from './components/TextbookToQuestions';
-import CramSheetCreator from './components/CramSheetCreator';
-import ContentCreationIdeas from './components/ContentCreationIdeas';
-import BusinessDemandAnalyzer from './components/BusinessDemandAnalyzer';
-import EmergencySurvivalPlanner from './components/EmergencySurvivalPlanner';
-import SituationEscaper from './components/SituationEscaper';
-import PresentationMaker from './components/PresentationMaker';
-import CheapFoodFinder from './components/CheapFoodFinder';
-import AccommodationFinder from './components/AccommodationFinder';
-import SnapAndSolve from './components/SnapAndSolve';
-import UploadAndSolve from './components/UploadAndSolve';
-import ObjectIdentifier from './components/ObjectIdentifier';
-import CGPACalculatorFile from './components/CGPACalculatorFile';
-import EDU432QualityAssurance from './components/EDU432QualityAssurance';
-import PlagiarismChecker from './components/PlagiarismChecker';
-import ImageToPdf from './components/ImageToPdf';
+// Eagerly load critical components
+import Landing from './components/Landing';
+import Navigation from './components/Navigation';
+import Header from './components/Header';
 
-import Tour from './components/Tour';
+// Lazy load everything else
+const TopicGenerator = lazy(() => import('./components/TopicGenerator'));
+const ProjectForm = lazy(() => import('./components/ProjectForm'));
+const ProjectWriter = lazy(() => import('./components/ProjectWriter'));
+const ProjectReview = lazy(() => import('./components/ProjectReview'));
+const Login = lazy(() => import('./components/Login'));
+const Signup = lazy(() => import('./components/Signup'));
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const Support = lazy(() => import('./components/Support'));
+const ProjectEditor = lazy(() => import('./components/ProjectEditor'));
+const ProjectDefense = lazy(() => import('./components/ProjectDefense'));
+const TopUp = lazy(() => import('./components/TopUp'));
+const NotificationsPage = lazy(() => import('./components/NotificationsPage'));
+const TransactionsPage = lazy(() => import('./components/TransactionsPage'));
+const PremiumModal = lazy(() => import('./components/PremiumModal'));
+
+const Services = lazy(() => import('./components/Services'));
+const CGPACalculator = lazy(() => import('./components/CGPACalculator'));
+const AssignmentWriter = lazy(() => import('./components/AssignmentWriter'));
+const QuizWriter = lazy(() => import('./components/QuizWriter'));
+const PastQuestionGenerator = lazy(() => import('./components/PastQuestionGenerator'));
+const Paraphraser = lazy(() => import('./components/Paraphraser'));
+const CVBuilder = lazy(() => import('./components/CVBuilder'));
+const StudyTimetable = lazy(() => import('./components/StudyTimetable'));
+const ScholarshipFinder = lazy(() => import('./components/ScholarshipFinder'));
+const CarryoverCalculator = lazy(() => import('./components/CarryoverCalculator'));
+const SideHustleGenerator = lazy(() => import('./components/SideHustleGenerator'));
+const NoteSummarizer = lazy(() => import('./components/NoteSummarizer'));
+const JobFinder = lazy(() => import('./components/JobFinder'));
+const FoodBudgetPlanner = lazy(() => import('./components/FoodBudgetPlanner'));
+const ExamPredictor = lazy(() => import('./components/ExamPredictor'));
+const MemoryHackGenerator = lazy(() => import('./components/MemoryHackGenerator'));
+const PerfectExamAnswer = lazy(() => import('./components/PerfectExamAnswer'));
+const TextbookToQuestions = lazy(() => import('./components/TextbookToQuestions'));
+const CramSheetCreator = lazy(() => import('./components/CramSheetCreator'));
+const ContentCreationIdeas = lazy(() => import('./components/ContentCreationIdeas'));
+const BusinessDemandAnalyzer = lazy(() => import('./components/BusinessDemandAnalyzer'));
+const EmergencySurvivalPlanner = lazy(() => import('./components/EmergencySurvivalPlanner'));
+const SituationEscaper = lazy(() => import('./components/SituationEscaper'));
+const PresentationMaker = lazy(() => import('./components/PresentationMaker'));
+const CheapFoodFinder = lazy(() => import('./components/CheapFoodFinder'));
+const AccommodationFinder = lazy(() => import('./components/AccommodationFinder'));
+const SnapAndSolve = lazy(() => import('./components/SnapAndSolve'));
+const UploadAndSolve = lazy(() => import('./components/UploadAndSolve'));
+const ObjectIdentifier = lazy(() => import('./components/ObjectIdentifier'));
+const CGPACalculatorFile = lazy(() => import('./components/CGPACalculatorFile'));
+const EDU432QualityAssurance = lazy(() => import('./components/EDU432QualityAssurance'));
+const PlagiarismChecker = lazy(() => import('./components/PlagiarismChecker'));
+const ImageToPdf = lazy(() => import('./components/ImageToPdf'));
+
+const Tour = lazy(() => import('./components/Tour'));
 
 export const UserContext = createContext<any>(null);
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen bg-[#0f172a]">
+    <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+  </div>
+);
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -342,218 +352,220 @@ export default function App() {
 
         
         <AnimatePresence mode="wait">
-          {step === 'home' && (
-            <motion.div
-              key="home"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-              className="w-full h-full"
-            >
-              <Landing 
-                onLogin={() => setStep('login')}
-                onSignup={() => setStep('signup')}
-                user={user}
-                isPublic={true}
+          <Suspense fallback={<LoadingFallback />}>
+            {step === 'home' && (
+              <motion.div
+                key="home"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className="w-full h-full"
+              >
+                <Landing 
+                  onLogin={() => setStep('login')}
+                  onSignup={() => setStep('signup')}
+                  user={user}
+                  isPublic={true}
+                />
+              </motion.div>
+            )}
+
+            {authLoading && (
+              <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-600"></div>
+              </div>
+            )}
+
+            {step === 'login' && <Login key="login" onLogin={handleLogin} onSignup={() => setStep('signup')} onBack={() => setStep('home')} />}
+            {step === 'signup' && <Signup key="signup" onSignup={handleSignup} onLogin={() => setStep('login')} onBack={() => setStep('home')} />}
+            
+            {step === 'admin' && <AdminDashboard key="admin" />}
+            
+            {step === 'dashboard' && user && (
+              <Dashboard 
+                key="dashboard" 
+                onBack={() => setStep('landing')} 
+                onViewProject={(p) => {
+                   setSelectedProject(p);
+                   setStep('editor');
+                }}
+                onNavigate={setStep}
               />
-            </motion.div>
-          )}
+            )}
 
-          {authLoading && (
-            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-600"></div>
-            </div>
-          )}
+            {step === 'topup' && <TopUp key="topup" onBack={() => setStep('dashboard')} />}
+            {step === 'notifications' && <NotificationsPage key="notifications" onBack={() => setStep('dashboard')} />}
+            {step === 'transactions' && <TransactionsPage key="transactions" onBack={() => setStep('dashboard')} />}
 
-          {step === 'login' && <Login key="login" onLogin={handleLogin} onSignup={() => setStep('signup')} onBack={() => setStep('home')} />}
-          {step === 'signup' && <Signup key="signup" onSignup={handleSignup} onLogin={() => setStep('login')} onBack={() => setStep('home')} />}
-          
-          {step === 'admin' && <AdminDashboard key="admin" />}
-          
-          {step === 'dashboard' && user && (
-            <Dashboard 
-              key="dashboard" 
-              onBack={() => setStep('landing')} 
-              onViewProject={(p) => {
-                 setSelectedProject(p);
-                 setStep('editor');
-              }}
-              onNavigate={setStep}
-            />
-          )}
-
-          {step === 'topup' && <TopUp key="topup" onBack={() => setStep('dashboard')} />}
-          {step === 'notifications' && <NotificationsPage key="notifications" onBack={() => setStep('dashboard')} />}
-          {step === 'transactions' && <TransactionsPage key="transactions" onBack={() => setStep('dashboard')} />}
-
-          {step === 'editor' && selectedProject && (
-            <ProjectEditor
-              key="editor"
-              project={selectedProject}
-              onBack={() => setStep('dashboard')}
-              onSave={handleSaveProject}
-              onNavigate={setStep}
-            />
-          )}
-
-          {step === 'support' && <Support key="support" />}
-          {step === 'services' && <Services onBack={() => setStep('landing')} onNavigate={setStep} />}
-          {step === 'cgpa-calculator' && <CGPACalculator onBack={() => setStep('services')} />}
-          {step === 'assignment-writer' && <AssignmentWriter onBack={() => setStep('services')} />}
-          {step === 'quiz-writer' && <QuizWriter onBack={() => setStep('services')} />}
-          {step === 'past-questions' && <PastQuestionGenerator onBack={() => setStep('services')} />}
-          {step === 'paraphraser' && <Paraphraser onBack={() => setStep('services')} />}
-          {step === 'cv-builder' && <CVBuilder onBack={() => setStep('services')} />}
-          {step === 'study-timetable' && <StudyTimetable onBack={() => setStep('services')} />}
-          {step === 'scholarship-finder' && <ScholarshipFinder onBack={() => setStep('services')} />}
-          {step === 'carryover-calculator' && <CarryoverCalculator onBack={() => setStep('services')} />}
-          {step === 'side-hustle' && <SideHustleGenerator onBack={() => setStep('services')} />}
-          {step === 'note-summarizer' && <NoteSummarizer onBack={() => setStep('services')} />}
-          {step === 'job-finder' && <JobFinder onBack={() => setStep('services')} />}
-          {step === 'food-budget-planner' && <FoodBudgetPlanner onBack={() => setStep('services')} />}
-          {step === 'exam-predictor' && <ExamPredictor onBack={() => setStep('services')} />}
-          {step === 'memory-hack' && <MemoryHackGenerator onBack={() => setStep('services')} />}
-          {step === 'perfect-exam-answer' && <PerfectExamAnswer onBack={() => setStep('services')} />}
-          {step === 'textbook-to-questions' && <TextbookToQuestions onBack={() => setStep('services')} />}
-          {step === 'cram-sheet-creator' && <CramSheetCreator onBack={() => setStep('services')} />}
-          {step === 'content-creation-ideas' && <ContentCreationIdeas onBack={() => setStep('services')} />}
-          {step === 'business-demand' && <BusinessDemandAnalyzer onBack={() => setStep('services')} />}
-          {step === 'emergency-survival' && <EmergencySurvivalPlanner onBack={() => setStep('services')} />}
-          {step === 'situation-escaper' && <SituationEscaper onBack={() => setStep('services')} />}
-          {step === 'presentation-maker' && <PresentationMaker onBack={() => setStep('services')} />}
-          {step === 'cheap-food-finder' && <CheapFoodFinder onBack={() => setStep('services')} />}
-          {step === 'accommodation-finder' && <AccommodationFinder onBack={() => setStep('services')} />}
-          {step === 'snap-solve' && <SnapAndSolve onBack={() => setStep('services')} />}
-          {step === 'upload-solve' && <UploadAndSolve onBack={() => setStep('services')} />}
-          {step === 'object-identifier' && <ObjectIdentifier onBack={() => setStep('services')} />}
-          {step === 'cgpa-calculator-file' && <CGPACalculatorFile onBack={() => setStep('services')} />}
-          {step === 'edu432-qa' && <EDU432QualityAssurance onBack={() => setStep('services')} />}
-          {step === 'plagiarism-checker' && <PlagiarismChecker onBack={() => setStep('landing')} />}
-          {step === 'image-to-pdf' && <ImageToPdf onBack={() => setStep('services')} />}
-
-          {step === 'landing' && (
-            <motion.div
-              key="landing"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-              className="w-full h-full"
-            >
-              <Landing 
-                onStart={() => setStep('topic-selection')} 
-                onWrite={() => setStep('details')}
-                onDashboard={() => setStep('dashboard')}
-                onDefense={() => setStep('defense')}
-                onPlagiarismCheck={() => setStep('plagiarism-checker')}
-                user={user}
-                isPublic={false}
+            {step === 'editor' && selectedProject && (
+              <ProjectEditor
+                key="editor"
+                project={selectedProject}
+                onBack={() => setStep('dashboard')}
+                onSave={handleSaveProject}
+                onNavigate={setStep}
               />
-            </motion.div>
-          )}
+            )}
 
-          {step === 'defense' && user && (
-            <ProjectDefense 
-              key="defense"
-              onBack={() => setStep('landing')}
-              onNavigate={setStep}
-            />
-          )}
-          
-          {step === 'topic-selection' && (
-            <TopicGenerator 
-              key="topic"
-              onSelectTopic={(topic, dept) => {
-                setDetails(prev => ({ ...prev, topic, department: dept }));
-                setStep('details');
-              }}
-              onBack={() => setStep('landing')}
-            />
-          )}
+            {step === 'support' && <Support key="support" />}
+            {step === 'services' && <Services onBack={() => setStep('landing')} onNavigate={setStep} />}
+            {step === 'cgpa-calculator' && <CGPACalculator onBack={() => setStep('services')} />}
+            {step === 'assignment-writer' && <AssignmentWriter onBack={() => setStep('services')} />}
+            {step === 'quiz-writer' && <QuizWriter onBack={() => setStep('services')} />}
+            {step === 'past-questions' && <PastQuestionGenerator onBack={() => setStep('services')} />}
+            {step === 'paraphraser' && <Paraphraser onBack={() => setStep('services')} />}
+            {step === 'cv-builder' && <CVBuilder onBack={() => setStep('services')} />}
+            {step === 'study-timetable' && <StudyTimetable onBack={() => setStep('services')} />}
+            {step === 'scholarship-finder' && <ScholarshipFinder onBack={() => setStep('services')} />}
+            {step === 'carryover-calculator' && <CarryoverCalculator onBack={() => setStep('services')} />}
+            {step === 'side-hustle' && <SideHustleGenerator onBack={() => setStep('services')} />}
+            {step === 'note-summarizer' && <NoteSummarizer onBack={() => setStep('services')} />}
+            {step === 'job-finder' && <JobFinder onBack={() => setStep('services')} />}
+            {step === 'food-budget-planner' && <FoodBudgetPlanner onBack={() => setStep('services')} />}
+            {step === 'exam-predictor' && <ExamPredictor onBack={() => setStep('services')} />}
+            {step === 'memory-hack' && <MemoryHackGenerator onBack={() => setStep('services')} />}
+            {step === 'perfect-exam-answer' && <PerfectExamAnswer onBack={() => setStep('services')} />}
+            {step === 'textbook-to-questions' && <TextbookToQuestions onBack={() => setStep('services')} />}
+            {step === 'cram-sheet-creator' && <CramSheetCreator onBack={() => setStep('services')} />}
+            {step === 'content-creation-ideas' && <ContentCreationIdeas onBack={() => setStep('services')} />}
+            {step === 'business-demand' && <BusinessDemandAnalyzer onBack={() => setStep('services')} />}
+            {step === 'emergency-survival' && <EmergencySurvivalPlanner onBack={() => setStep('services')} />}
+            {step === 'situation-escaper' && <SituationEscaper onBack={() => setStep('services')} />}
+            {step === 'presentation-maker' && <PresentationMaker onBack={() => setStep('services')} />}
+            {step === 'cheap-food-finder' && <CheapFoodFinder onBack={() => setStep('services')} />}
+            {step === 'accommodation-finder' && <AccommodationFinder onBack={() => setStep('services')} />}
+            {step === 'snap-solve' && <SnapAndSolve onBack={() => setStep('services')} />}
+            {step === 'upload-solve' && <UploadAndSolve onBack={() => setStep('services')} />}
+            {step === 'object-identifier' && <ObjectIdentifier onBack={() => setStep('services')} />}
+            {step === 'cgpa-calculator-file' && <CGPACalculatorFile onBack={() => setStep('services')} />}
+            {step === 'edu432-qa' && <EDU432QualityAssurance onBack={() => setStep('services')} />}
+            {step === 'plagiarism-checker' && <PlagiarismChecker onBack={() => setStep('landing')} />}
+            {step === 'image-to-pdf' && <ImageToPdf onBack={() => setStep('services')} />}
 
-          {step === 'details' && (
-            <ProjectForm
-              key="details"
-              details={details}
-              onUpdateDetails={setDetails}
-              onNext={async () => {
-                const costInNaira = projectCost.credits * projectCost.naira;
-                const hasCredits = (user?.project_credits || 0) >= projectCost.credits;
-                const hasBalance = (user?.balance || 0) >= costInNaira;
-                const isFreeAccess = user?.hasFreeAccess;
+            {step === 'landing' && (
+              <motion.div
+                key="landing"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className="w-full h-full"
+              >
+                <Landing 
+                  onStart={() => setStep('topic-selection')} 
+                  onWrite={() => setStep('details')}
+                  onDashboard={() => setStep('dashboard')}
+                  onDefense={() => setStep('defense')}
+                  onPlagiarismCheck={() => setStep('plagiarism-checker')}
+                  user={user}
+                  isPublic={false}
+                />
+              </motion.div>
+            )}
 
-                if (isFreeAccess || hasCredits || hasBalance) {
-                  setIsWriting(true);
-                  try {
-                    // Create project immediately to deduct credit and save draft
-                    const res = await clientFetch('/api/projects', { 
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        topic: details.topic,
-                        department: details.department,
-                        details: details,
-                        content: INITIAL_PROJECT_CONTENT,
-                        is_premium_generated: false // This triggers the deduction in backend
-                      })
-                    });
+            {step === 'defense' && user && (
+              <ProjectDefense 
+                key="defense"
+                onBack={() => setStep('landing')}
+                onNavigate={setStep}
+              />
+            )}
+            
+            {step === 'topic-selection' && (
+              <TopicGenerator 
+                key="topic"
+                onSelectTopic={(topic, dept) => {
+                  setDetails(prev => ({ ...prev, topic, department: dept }));
+                  setStep('details');
+                }}
+                onBack={() => setStep('landing')}
+              />
+            )}
 
-                    if (res.ok) {
-                       const project = await res.json();
-                       await fetchUser();
-                       setIsPremiumSession(true);
-                       setSelectedProject(project);
-                       setStep('writing');
-                    } else {
-                       setIsWriting(false);
-                       const data = await res.json();
-                       alert(data.error || 'Failed to start project generation');
+            {step === 'details' && (
+              <ProjectForm
+                key="details"
+                details={details}
+                onUpdateDetails={setDetails}
+                onNext={async () => {
+                  const costInNaira = projectCost.credits * projectCost.naira;
+                  const hasCredits = (user?.project_credits || 0) >= projectCost.credits;
+                  const hasBalance = (user?.balance || 0) >= costInNaira;
+                  const isFreeAccess = user?.hasFreeAccess;
+
+                  if (isFreeAccess || hasCredits || hasBalance) {
+                    setIsWriting(true);
+                    try {
+                      // Create project immediately to deduct credit and save draft
+                      const res = await clientFetch('/api/projects', { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          topic: details.topic,
+                          department: details.department,
+                          details: details,
+                          content: INITIAL_PROJECT_CONTENT,
+                          is_premium_generated: false // This triggers the deduction in backend
+                        })
+                      });
+
+                      if (res.ok) {
+                         const project = await res.json();
+                         await fetchUser();
+                         setIsPremiumSession(true);
+                         setSelectedProject(project);
+                         setStep('writing');
+                      } else {
+                         setIsWriting(false);
+                         const data = await res.json();
+                         alert(data.error || 'Failed to start project generation');
+                      }
+                    } catch (e) {
+                      setIsWriting(false);
+                      console.error(e);
+                      alert('Network error');
                     }
-                  } catch (e) {
-                    setIsWriting(false);
-                    console.error(e);
-                    alert('Network error');
+                  } else {
+                    setPremiumFeatureName('Project Generation');
+                    setShowPremiumModal(true);
                   }
-                } else {
-                  setPremiumFeatureName('Project Generation');
-                  setShowPremiumModal(true);
-                }
-              }}
-              onBack={() => setStep('landing')}
-              isWriting={isWriting}
-            />
-          )}
+                }}
+                onBack={() => setStep('landing')}
+                isWriting={isWriting}
+              />
+            )}
 
-          {step === 'writing' && user && (
-            <ProjectWriter
-              key="writing"
-              details={details}
-              onContentGenerated={(newContent, project) => {
-                setContent(newContent);
-                if (project) setSelectedProject(project);
-                setStep('review');
-              }}
-              onBack={() => setStep('details')}
-              onNavigate={setStep}
-              userId={user.id}
-              projectId={selectedProject?.id}
-            />
-          )}
+            {step === 'writing' && user && (
+              <ProjectWriter
+                key="writing"
+                details={details}
+                onContentGenerated={(newContent, project) => {
+                  setContent(newContent);
+                  if (project) setSelectedProject(project);
+                  setStep('review');
+                }}
+                onBack={() => setStep('details')}
+                onNavigate={setStep}
+                userId={user.id}
+                projectId={selectedProject?.id}
+              />
+            )}
 
-          {step === 'review' && (
-            <ProjectReview
-              key="review"
-              details={details}
-              content={content}
-              project={selectedProject}
-              onUpdateContent={setContent}
-              onUpdateDetails={setDetails}
-              onBack={() => setStep('writing')}
-              onNavigate={setStep}
-              isPremiumSession={isPremiumSession}
-            />
-          )}
+            {step === 'review' && (
+              <ProjectReview
+                key="review"
+                details={details}
+                content={content}
+                project={selectedProject}
+                onUpdateContent={setContent}
+                onUpdateDetails={setDetails}
+                onBack={() => setStep('writing')}
+                onNavigate={setStep}
+                isPremiumSession={isPremiumSession}
+              />
+            )}
+          </Suspense>
         </AnimatePresence>
 
         {user && !['home', 'login', 'signup', 'admin'].includes(step) && (
@@ -576,18 +588,24 @@ export default function App() {
         )}
 
         <AnimatePresence>
-          {showTour && <Tour onComplete={() => setShowTour(false)} />}
+          {showTour && (
+            <Suspense fallback={null}>
+              <Tour onComplete={() => setShowTour(false)} />
+            </Suspense>
+          )}
         </AnimatePresence>
 
-        <PremiumModal
-          isOpen={showPremiumModal}
-          onClose={() => setShowPremiumModal(false)}
-          onSubscribe={() => {
-            setShowPremiumModal(false);
-            setStep('topup');
-          }}
-          featureName={premiumFeatureName}
-        />
+        <Suspense fallback={null}>
+          <PremiumModal
+            isOpen={showPremiumModal}
+            onClose={() => setShowPremiumModal(false)}
+            onSubscribe={() => {
+              setShowPremiumModal(false);
+              setStep('topup');
+            }}
+            featureName={premiumFeatureName}
+          />
+        </Suspense>
       </div>
     </UserContext.Provider>
   );
