@@ -62,10 +62,20 @@ export const UserContext = createContext<any>(null);
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [step, setStep] = useState<GenerationStep | 'home' | 'login' | 'signup' | 'dashboard' | 'admin' | 'support' | 'editor' | 'transactions' | 'defense' | 'services' | 'cgpa-calculator' | 'assignment-writer' | 'quiz-writer' | 'past-questions' | 'paraphraser' | 'cv-builder' | 'study-timetable' | 'scholarship-finder' | 'carryover-calculator' | 'side-hustle' | 'note-summarizer' | 'job-finder' | 'food-budget-planner' | 'exam-predictor' | 'memory-hack' | 'perfect-exam-answer' | 'textbook-to-questions' | 'cram-sheet-creator' | 'content-creation-ideas' | 'business-demand' | 'emergency-survival' | 'situation-escaper' | 'presentation-maker' | 'cheap-food-finder' | 'accommodation-finder' | 'snap-solve' | 'upload-solve' | 'object-identifier' | 'cgpa-calculator-file' | 'edu432-qa' | 'project-writer' | 'ai-image-generator' | 'consistent-character' | 'storyboard-animator' | 'plagiarism-checker' | 'image-to-pdf'>('home');
   const [showTour, setShowTour] = useState(false);
+
+  useEffect(() => {
+    // Check if running in Gemini Preview environment
+    const hostname = window.location.hostname;
+    if (hostname.endsWith('.run.app')) {
+      setIsBlocked(true);
+    }
+  }, []);
+
   const [details, setDetails] = useState<ProjectDetails>({
     // Student Info
     fullName: '',
@@ -310,6 +320,37 @@ export default function App() {
       alert('Failed to save project. Please try again.');
     }
   };
+
+  if (isBlocked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0f172a] p-6 text-center">
+        <div className="max-w-md space-y-6">
+          <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-12 h-12 text-emerald-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H10m4-6a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-white">Official Site Only</h1>
+          <p className="text-slate-400">
+            This application is no longer available in the Gemini preview environment. 
+            Please visit the official hosted website on Netlify to access all features.
+          </p>
+          <div className="pt-4">
+            <a 
+              href="https://rtechsse.netlify.app" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-block px-8 py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-all"
+            >
+              Go to Official Website
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAppReady) {
     return (

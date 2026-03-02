@@ -1,33 +1,46 @@
 import express from 'express';
 import { protect, AuthenticatedRequest } from '../middleware/auth';
-import { generateContentWithRetries } from '../utils/geminiApi';
+import { generateContentWithRetries, hasKeys } from '../utils/geminiApi';
 import { ThinkingLevel } from '@google/genai';
 
 const router = express.Router();
 
 // Get Gemini Keys for Client-Side Use (Avoids Netlify Timeouts)
-router.get('/keys', protect, (req: AuthenticatedRequest, res) => {
+router.get('/keys', (req, res) => {
+  console.log('Request for Gemini keys received');
   const keys: string[] = [];
   
   // Collect keys from server environment
-  if (process.env.GEMINI_API_KEY) keys.push(process.env.GEMINI_API_KEY);
+  if (process.env.GEMINI_API_KEY) {
+    keys.push(process.env.GEMINI_API_KEY);
+    console.log('Found GEMINI_API_KEY');
+  }
   if (process.env.GEMINI_API_KEYS) {
+    console.log('Found GEMINI_API_KEYS list');
     process.env.GEMINI_API_KEYS.split(',').forEach(k => {
       if (k.trim()) keys.push(k.trim());
     });
   }
   for (let i = 1; i <= 20; i++) {
     const key = process.env[`GEMINI_API_KEY_${i}`];
-    if (key) keys.push(key);
+    if (key) {
+      keys.push(key);
+      console.log(`Found GEMINI_API_KEY_${i}`);
+    }
   }
 
   // Also check VITE_ prefixed ones just in case
-  if (process.env.VITE_GEMINI_API_KEY) keys.push(process.env.VITE_GEMINI_API_KEY);
+  if (process.env.VITE_GEMINI_API_KEY) {
+    keys.push(process.env.VITE_GEMINI_API_KEY);
+    console.log('Found VITE_GEMINI_API_KEY');
+  }
 
   // Deduplicate
   const uniqueKeys = [...new Set(keys)];
+  console.log(`Total unique keys found: ${uniqueKeys.length}`);
 
   if (uniqueKeys.length === 0) {
+    console.error('CRITICAL: No Gemini API keys found in environment variables');
     return res.status(500).json({ error: 'No Gemini API keys configured on server' });
   }
 
@@ -202,6 +215,13 @@ router.post('/solve', protect, async (req: AuthenticatedRequest, res) => {
 
 // Generic Generate Content
 router.post('/generate', protect, async (req: AuthenticatedRequest, res) => {
+  if (!hasKeys()) {
+    return res.status(500).json({ 
+      error: "No Gemini API keys configured on server.", 
+      details: "Please set GEMINI_API_KEY in Netlify environment variables." 
+    });
+  }
+
   const { model, prompt, config } = req.body;
 
   try {
@@ -217,7 +237,11 @@ router.post('/generate', protect, async (req: AuthenticatedRequest, res) => {
     res.json({ text: response.text });
   } catch (error: any) {
     console.error("Gemini Generate Error:", error);
-    res.status(500).json({ error: "Failed to generate content with Gemini." });
+    // Return the actual error message to help debugging
+    res.status(500).json({ 
+      error: error.message || "Failed to generate content with Gemini.",
+      details: error.toString()
+    });
   }
 });
 

@@ -53,6 +53,8 @@ const initializeClients = () => {
 // Initialize on load
 initializeClients();
 
+export const hasKeys = () => geminiClients.length > 0;
+
 export async function* generateContentStreamWithRetries(params: any): AsyncGenerator<any> {
   if (geminiClients.length === 0) initializeClients();
 

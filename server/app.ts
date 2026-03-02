@@ -172,7 +172,7 @@ app.use('/api/admin', protect, admin, adminUsersRouter);
 app.use('/api/notifications', protect, notificationsRouter);
 app.use('/api/wallet', protect, walletRouter);
 app.use('/api/transactions', protect, transactionsRouter);
-app.use('/api/gemini', protect, geminiRouter);
+app.use('/api/gemini', geminiRouter); // Protect is handled inside the router
 app.use('/api/ai', protect, aiRouter);
 app.use('/api/users', protect, usersRouter);
 

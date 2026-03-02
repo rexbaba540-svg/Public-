@@ -55,20 +55,26 @@ const initializeClients = async () => {
 
     // 3. If no keys found yet (Client-side runtime), fetch from backend
     if (keys.size === 0 && typeof window !== 'undefined') {
-      try {
-        console.log("Fetching Gemini keys from backend...");
-        const response = await clientFetch('/api/gemini/keys');
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data.keys)) {
-            data.keys.forEach((k: string) => keys.add(k));
-            console.log(`Fetched ${data.keys.length} keys from backend.`);
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          console.log(`Fetching Gemini keys from backend (attempt ${4 - retries})...`);
+          const response = await clientFetch('/api/gemini/keys');
+          if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data.keys)) {
+              data.keys.forEach((k: string) => keys.add(k));
+              console.log(`Fetched ${data.keys.length} keys from backend.`);
+              break; // Success
+            }
+          } else {
+            console.warn(`Failed to fetch keys from backend: ${response.statusText} (${response.status})`);
           }
-        } else {
-          console.warn("Failed to fetch keys from backend:", response.statusText);
+        } catch (error) {
+          console.warn("Error fetching keys from backend:", error);
         }
-      } catch (error) {
-        console.warn("Error fetching keys from backend:", error);
+        retries--;
+        if (retries > 0) await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
       }
     }
 
