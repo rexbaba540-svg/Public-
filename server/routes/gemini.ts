@@ -88,7 +88,7 @@ router.post('/edu432', protect, async (req: AuthenticatedRequest, res) => {
 
     const response = await generateContentWithRetries({
       model: 'gemini-3-flash-preview',
-      contents: [{ parts }],
+      contents: { parts },
       config: {
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         temperature: 0.2,
@@ -114,19 +114,17 @@ router.post('/extract-grades', protect, async (req: AuthenticatedRequest, res) =
   try {
     const response = await generateContentWithRetries({
       model: 'gemini-3-flash-preview',
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType: mimeType,
-                data: base64Data.split(',')[1] || base64Data
-              }
+      contents: {
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: mimeType,
+              data: base64Data.split(',')[1] || base64Data
             }
-          ]
-        }
-      ],
+          }
+        ]
+      },
       config: {
         responseMimeType: "application/json",
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
@@ -152,19 +150,17 @@ router.post('/identify', protect, async (req: AuthenticatedRequest, res) => {
   try {
     const response = await generateContentWithRetries({
       model: 'gemini-3-flash-preview',
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType: "image/jpeg",
-                data: base64Image.split(',')[1] || base64Image
-              }
+      contents: {
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: "image/jpeg",
+              data: base64Image.split(',')[1] || base64Image
             }
-          ]
-        }
-      ],
+          }
+        ]
+      },
       config: {
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         temperature: 0.2,
@@ -187,19 +183,17 @@ router.post('/solve', protect, async (req: AuthenticatedRequest, res) => {
   try {
     const response = await generateContentWithRetries({
       model: 'gemini-3-flash-preview',
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType: mimeType || "image/jpeg",
-                data: base64Data.split(',')[1] || base64Data
-              }
+      contents: {
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: mimeType || "image/jpeg",
+              data: base64Data.split(',')[1] || base64Data
             }
-          ]
-        }
-      ],
+          }
+        ]
+      },
       config: {
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         temperature: 0.1,
@@ -222,12 +216,22 @@ router.post('/generate', protect, async (req: AuthenticatedRequest, res) => {
     });
   }
 
-  const { model, prompt, config } = req.body;
+  const { model, prompt, contents, config } = req.body;
+  
+  // Use contents if provided, otherwise use prompt
+  const finalContents = contents || prompt;
+
+  if (!finalContents) {
+    return res.status(400).json({ 
+      error: "Missing 'contents' or 'prompt' in request body.",
+      receivedBody: req.body
+    });
+  }
 
   try {
     const response = await generateContentWithRetries({
       model: model || 'gemini-3-flash-preview',
-      contents: prompt,
+      contents: finalContents,
       config: {
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         ...(config || {})

@@ -74,7 +74,28 @@ export async function* generateContentStreamWithRetries(params: any): AsyncGener
 
   for (const client of availableClients) {
     try {
-      const stream = await client.client.models.generateContentStream(params);
+      console.log(`[Gemini] Calling generateContentStream with model: ${params.model || 'default'}`);
+      
+      // Ensure contents is in the correct format for the SDK
+      const formattedParams = {
+        model: params.model || 'gemini-3-flash-preview',
+        contents: typeof params.contents === 'string' ? { parts: [{ text: params.contents }] } : params.contents,
+        config: params.config
+      };
+
+      console.log("[Gemini] Formatted Params:", JSON.stringify({
+        model: formattedParams.model,
+        contentsType: typeof formattedParams.contents,
+        isContentsArray: Array.isArray(formattedParams.contents),
+        config: formattedParams.config
+      }));
+
+      if (!formattedParams.contents) {
+        console.error("[Gemini] CRITICAL: contents is missing in formattedParams", params);
+        throw new Error("Gemini contents is missing");
+      }
+
+      const stream = await client.client.models.generateContentStream(formattedParams);
       for await (const chunk of stream) {
         yield chunk;
       }

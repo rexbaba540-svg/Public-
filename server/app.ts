@@ -144,6 +144,16 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Backend is reachable', 
+    timestamp: new Date().toISOString(),
+    path: req.path,
+    url: req.url,
+    method: req.method
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -172,7 +182,10 @@ app.use('/api/admin', protect, admin, adminUsersRouter);
 app.use('/api/notifications', protect, notificationsRouter);
 app.use('/api/wallet', protect, walletRouter);
 app.use('/api/transactions', protect, transactionsRouter);
-app.use('/api/gemini', geminiRouter); // Protect is handled inside the router
+app.use('/api/gemini', (req, res, next) => {
+  console.log(`Gemini Route Hit: ${req.method} ${req.url}`);
+  next();
+}, geminiRouter); // Protect is handled inside the router
 app.use('/api/ai', protect, aiRouter);
 app.use('/api/users', protect, usersRouter);
 

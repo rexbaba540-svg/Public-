@@ -160,28 +160,42 @@ export async function* generateContentStreamWithRetries(params: any): AsyncGener
     console.warn("All client-side keys failed. Falling back to backend proxy.");
   }
 
-  // 2. Fallback to Backend Proxy
-  try {
-    const response = await clientFetch('/api/gemini/generate', {
-      method: 'POST',
-      body: JSON.stringify({
-        model: params.model,
-        prompt: params.contents,
-        config: params.config
-      })
-    });
+    // 2. Fallback to Backend Proxy
+    try {
+      console.log(`[Gemini] Falling back to backend proxy for ${params.model || 'default'}...`);
+      const response = await clientFetch('/api/gemini/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: params.model,
+          contents: params.contents,
+          config: params.config
+        })
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate content via backend');
+      if (!response.ok) {
+        let errorData: any = { error: 'Unknown error' };
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          const text = await response.text();
+          console.error(`[Gemini] Backend returned non-JSON response: ${text.substring(0, 200)}`);
+          errorData = { error: `Server returned ${response.status}: ${response.statusText}`, details: text.substring(0, 100) };
+        }
+        throw new Error(errorData.error || 'Failed to generate content via backend');
+      }
+
+      const data = await response.json();
+      yield { text: data.text };
+    } catch (error: any) {
+      console.error("[Gemini] API call failed via backend:", error.message);
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        throw new Error("Failed to connect to the backend server. Please check your internet connection or if the server is down.");
+      }
+      throw error;
     }
-
-    const data = await response.json();
-    yield { text: data.text };
-  } catch (error: any) {
-    console.error("Gemini API call failed via backend:", error.message);
-    throw error;
-  }
 }
 
 export async function generateContentWithRetries(params: any): Promise<any> {
