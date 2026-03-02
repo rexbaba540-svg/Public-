@@ -1,7 +1,6 @@
 import express from 'express';
 import { protect, AuthenticatedRequest } from '../middleware/auth';
 import { supabase } from '../utils/supabase';
-import { generateContentWithRetries } from '../utils/geminiApi';
 
 const router = express.Router();
 

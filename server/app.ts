@@ -128,8 +128,11 @@ async function seedAdmin() {
   }
 }
 
-// Call seedAdmin on startup
-seedAdmin();
+// Call seedAdmin on startup only if not in serverless environment (heuristic)
+// In serverless, we should probably trigger this via a dedicated route or build step
+if (process.env.NODE_ENV !== 'production' || process.env.SEED_ON_START === 'true') {
+  seedAdmin();
+}
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
